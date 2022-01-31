@@ -1,3 +1,9 @@
+<?php
+
+session_start();
+
+
+?>
 <!DOCTYPE html>
 <html lang="es">
 
@@ -16,7 +22,7 @@
         <a href="inicio.php">
             <h1>PIXOMS</h1>
         </a>
-        <nav>
+        <!-- <nav>
             <ul>
                 <li>
                     <a href="subir_img.php">Subir archivos</a>
@@ -28,16 +34,28 @@
                     <a href="nombre_img.php">Ver nombre de la imagen</a>
                 </li>
             </ul>
-        </nav>
+        </nav> -->
     </header>
     <main>
         <h2>Introduce un nombre</h2>
         <h3>Podrás ver los albumes de todos tu hermanos de nombre y ellos el tuyo</h3>
-        <form action="carpetas.php" method="post">
+        <form action="" method="post">
             <label for="cliente">Nombre</label>
             <input type="text" name="cliente">
-            <input type="submit" value="sube">
+            <input type="submit" value="sube" name="subir">
         </form>
+        <?php
+        
+        require 'metodo.php';
+        
+        $prueba = new Metodo();
+
+        if (isset($_POST['subir'])) {
+            /* $prueba->encontrarcliente($_POST['cliente']); */
+            $prueba->encontrarcliente();
+        }
+
+        ?>
     </main>
     <footer>
 

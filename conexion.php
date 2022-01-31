@@ -3,91 +3,104 @@
 require 'config.php';
 require 'fpdf/fpdf.php';
 
-class Conexion extends FPDF{
+class Conexion extends FPDF
+{
 
     protected $conexion_bd;
     protected $pdf;
 
-    function __construct(){
-         $this->conexion_bd = new mysqli(SERVIDOR, USUARIO, CONTRASENIA, BD);
-         if ($this->conexion_bd->connect_errno) {
-         echo 'Se produjo un error en la conexión';
+    function __construct()
+    {
+        $this->conexion_bd = new mysqli(SERVIDOR, USUARIO, CONTRASENIA, BD);
+        if ($this->conexion_bd->connect_errno) {
+            echo 'Se produjo un error en la conexión';
         }
         $this->pdf = new FPDF();
     }
 
 
-    /* Crea el registro del cliente y finalmente genera su carpeta */
-    function insertarCliente(){
 
-        /* Inserción. Primero Se genera un registro sin */
-        $sql_insercion = 'INSERT INTO pedido VALUES (null, "'.$_POST['cliente'].'", null, null, now())';
+    /* Busca un cliente, y si no existe lo crea y redirige. Si existe, redirige directamente */
+    function encontrarcliente()
+    {
+        $usuario = $_POST['cliente'];
+
+        $sql_consulta = 'SELECT * FROM pedido WHERE cliente = ?';
+
+        if (!$consulta = $this->conexion_bd->prepare($sql_consulta)) {
+            echo 'No se pudo elaborar la consulta';
+        } else {
+
+            $consulta->bind_param('s', $usuario);
+            $consulta->execute();
+            $resultado = $consulta->get_result();
+
+            if ($fila = $resultado->fetch_array(MYSQLI_ASSOC)) {
+                header("location: subir_img.php? ruta=".$fila['ruta']);
+                return $fila['id'];
+            } else {
+                $this->insertarCliente();
+            }
+        }
+    }
+
+
+    /* Crea el registro del cliente y finalmente genera su carpeta */
+    function insertarCliente()
+    {
+        $cliente = $_POST['cliente'];
+
+        /* Inserción. Primero Se genera un registro sin ruta */
+        $sql_insercion = 'INSERT INTO pedido VALUES (null, "' . $_POST['cliente'] . '", null, now())';
 
         if (!$insercion = $this->conexion_bd->query($sql_insercion)) {
             echo 'Se ha producido un error y no se pudo registrar su usuario';
+        } else {
+            $this->actualizarRegistro($this->encontrarcliente());
         }
+    }
 
-        $insercion->close();
+    /* genera la ruta de la carpeta */
+    function actualizarRegistro($id)
+    {
 
-        /* Selección. Esto se hace para extraer el id del cliente y usarlo para renombrar su carpeta o álbum personal */
-        $sql_consuta = 'SELECT * FROM pedido WHERE cliente = '.$_POST['cliente'];
+        $cliente = $_POST['cliente'];
 
-        $consulta = $this->conexion_bd->query($sql_consuta);
-
-        if (!$fila = $consulta->fetch_array(MYSQLI_ASSOC)) {
-            echo 'No se pudo finalizar su registro';
-            
-        }
-
-        $id = $fila['id'];
-
-        /* Actualización */
-
-        $sql_actualizacion = 'UPDATE pedido SET ruta = img/'.$_POST['cliente'] + $id.' WHERE id ='.$id;
+        $sql_actualizacion = "UPDATE pedido SET ruta = 'img/$cliente$id' WHERE id = '$id'";
 
         if (!$actualizacion = $this->conexion_bd->query($sql_actualizacion)) {
-           echo 'No se ha podido actualizar su registro';
+            echo 'No se ha podido actualizar su registro';
         }
-
-        /* Cierre de consultas */
-        $consulta->close();
-        $actualizacion->close();
 
         /* Llamada a la creación de la carpeta del usuario*/
-        if (!$this->conexion_bd->Conexion::crearCarpeta($id)) {
-            echo 'No se pudo crear su álbum';
-        }
+        $this->crearCarpeta();
+        /* Conduce a la siguiente página */
+        header("location: subir_img.php");
 
     }
 
+    /* Crea una carpeta */
+    function crearCarpeta()
+    {
+        $cliente = $_POST['cliente'];
 
-    function mostrar_carpeta(){
-        $sql = 'SELECT ruta FROM pedido WHERE cliente = '.$_POST['cliente'];
+        $sql = "SELECT * FROM pedido WHERE cliente = '$cliente'";
+
+        $consulta = $this->conexion_bd->query($sql);
         
-        $consulta = $this->conexion_bd->query($sql);
-
-        while ($fila = $consulta->fetch_array(MYSQLI_ASSOC)) {
-            echo '<a href="ver_imagenes.php?">'.$fila['ruta'].'</a>    ';
-            echo $fila['num_imagenes'].'    ';
-            echo $fila['fecha'].'<br />';
-        }
-    }
-
-    function crearCarpeta($id){
-
-        $sql = 'SELECT * FROM pedido WHERE id = '.$id;
-
-        $consulta = $this->conexion_bd->query($sql);
-
-        if (!$fila = $consulta->fetch_array(MYSQLI_ASSOC) ) {
+        /* Si no existiera la fila, no se crea la carpeta */
+        if (!$fila = $consulta->fetch_array(MYSQLI_ASSOC)) {
             echo ' No se ha podido crear una carpeta';
+        } else {
+            $rutaCarpeta = $fila['ruta'];
+
+            if (file_exists($rutaCarpeta)) {
+                echo '';
+            } 
+            /* Crea una carpeta si no existe */
+            else {
+                mkdir($rutaCarpeta, 0777, true);
+            }
         }
-
-        $rutaCarpeta = $fila['ruta'];
-        
-        mkdir($rutaCarpeta);
-
     }
-
 }
-?>

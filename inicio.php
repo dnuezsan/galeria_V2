@@ -14,7 +14,7 @@
 <body>
     <header>
     <a href="inicio.php"><h1>PIXOMS</h1></a>
-        <nav>
+       <!--  <nav>
             <ul>
                 <li>
                     <a href="subir_img.php">Subir archivos</a>
@@ -26,7 +26,7 @@
                     <a href="nombre_img.php">Ver nombre de la imagen</a>
                 </li>
             </ul>
-        </nav>
+        </nav> -->
     </header>
     <main>
     <h2 id="titularInicio">Una página dedicada a dinamizar la fotografía</h2>

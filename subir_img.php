@@ -16,7 +16,7 @@
         <a href="inicio.php">
             <h1>El laboratorio</h1>
         </a>
-        <nav>
+        <!-- <nav>
             <ul>
                 <li>
                     <a href="subir_img.php">Subir archivos</a>
@@ -28,7 +28,7 @@
                     <a href="nombre_img.php">Ver nombre de la imagen</a>
                 </li>
             </ul>
-        </nav>
+        </nav> -->
     </header>
     <main>
         <h2>SUBIR IMAGEN</h2>
@@ -46,7 +46,7 @@
 
         //Metodo que gestiona la subida del archivo al directorio
         if (isset($_POST['boton'])) {
-            $controlador->subida_archivo();
+            $controlador->subidaMasivaArchivos($_GET['ruta']);
         }
 
         ?>
